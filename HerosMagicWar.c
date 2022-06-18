@@ -594,7 +594,7 @@ void lancerMenuAchatHeros(//here
     int choix=1, achat=0, confirm=0, ind_case_vide=0, ind_J_humain=0, existe_humain=0, ind_choix=0, choix_deja_achete=0, solde=0, prix=0;
     char text[100];
 
-    SDL_Surface *menu = NULL, *uncommon = NULL, *hero = NULL;
+    SDL_Surface *menu = NULL, *uncommon = NULL, *hero = NULL, *or = NULL;
     SDL_Rect positionMenu;
     SDL_Event event;
     TTF_Font *font = NULL;
@@ -759,6 +759,7 @@ void lancerMenuAchatHeros(//here
           SDL_Flip(ecran);
     }
     SDL_FreeSurface(hero);
+    SDL_FreeSurface(or);
     SDL_FreeSurface(uncommon);
     SDL_FreeSurface(texte);
     TTF_CloseFont(font);
