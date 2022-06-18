@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1654003960 source:c:\users\nagho\desktop\herosmagicwar\herosmagicwar.c
+1655550934 source:c:\users\nagho\desktop\mini projet\mode graphique 2d\herosmagicwar\herosmagicwar.c
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
@@ -207,12 +207,4 @@
 	"SDL.h"
 	"begin_code.h"
 	"close_code.h"
-
-1655397375 source:c:\users\nagho\desktop\mini projet\mode graphique 2d\herosmagicwar\herosmagicwar.c
-	<stdlib.h>
-	<stdio.h>
-	<string.h>
-	<SDL/SDL.h>
-	<SDL/SDL_image.h>
-	<SDL/SDL_ttf.h>
 

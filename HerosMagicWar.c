@@ -47,7 +47,7 @@
 
 
 typedef enum {NUM_JOUEUR_J, LIGNE_J, COLONNE_J, OR, BOIS, PIERRE, FER,
-SOUFFRE,SULFURE, GEMME_ROUGE, GEMME_BLEU, GEMME_JAUNE, NB_UNITES_TUEES,
+SOUFFRE,SULFURE, GEMME_BLEU, GEMME_ROUGE, GEMME_JAUNE, NB_UNITES_TUEES,
 NB_BATAILLE_GAGNES, NB_UNITES_PERDUES, NB_BATAILLE_PERDUES} E_JOUEURS;
 
 typedef enum {NUM_HERO_H, BONUS_ATTAQUE_H, BONUS_DEFENSE_H,
@@ -191,6 +191,7 @@ void success(SDL_Surface* ecran, char* text, int val){
   char value[20];
   int continuer = 1;
 
+    ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
     SDL_Init(SDL_INIT_VIDEO);
     //here condition
     if(text == "Un tresor a ete decouvert !"){
@@ -199,9 +200,12 @@ void success(SDL_Surface* ecran, char* text, int val){
     }else if(text == "Un Coffre d\'experience a ete decouvert !"){
       menu = IMG_Load("images/experience.png");
       sprintf(value,"%d Point",val);
-    }else{
+    }else if(text == "la bataille va commencer !"){
       menu = IMG_Load("images/success.png");
       sprintf(value,"Attque ennemi %d",val);
+    }else{
+      menu = IMG_Load("images/success.png");
+      sprintf(value,"Success !");
     }
     positionMenu.x = 0;
     positionMenu.y = 0;
@@ -217,7 +221,7 @@ void success(SDL_Surface* ecran, char* text, int val){
     SDL_Color rouge = {255,0,0};
     SDL_Rect positionText;
 
-    while (continuer){
+    while(continuer){
       SDL_WaitEvent( & event);
       if(event.type == SDL_QUIT){
         continuer = 0;
@@ -266,6 +270,7 @@ int alert(SDL_Surface* ecran,char* text){
   int continuer = 1;
   int indiceOption = 0;
 
+    ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
     SDL_Init(SDL_INIT_VIDEO);
     menu = IMG_Load("images/alert.png");
     positionMenu.x = 0;
@@ -352,13 +357,18 @@ void info(SDL_Surface* ecran, char* text, char* img){
   SDL_Surface *texte = NULL;
   int continuer = 1;
 
+    ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
     SDL_Init(SDL_INIT_VIDEO);
     menu = IMG_Load(img);
     positionMenu.x = 0;
     positionMenu.y = 0;
 
     TTF_Init();
-    text_font = TTF_OpenFont("Teko-Medium.ttf", 27);
+    if(strlen(text) >= 37){
+      text_font = TTF_OpenFont("Teko-Medium.ttf", 20);
+    }else{
+      text_font = TTF_OpenFont("Teko-Medium.ttf", 27);
+    }
     font = TTF_OpenFont("BlackOpsOne-Regular.ttf", 19);
 
     SDL_Color blanc = {255,255,255};
@@ -383,7 +393,11 @@ void info(SDL_Surface* ecran, char* text, char* img){
         char* phrase = "Clicker sur entrer pour continuer...";
           texte = TTF_RenderText_Blended(text_font, text, jaune);
           positionText.y = 230;
-          positionText.x = (400 - strlen(text)*8.6)/2;
+          if(strlen(text) >= 37){
+            positionText.x = (400 - strlen(text)*6.4)/2;
+          }else{
+            positionText.x = (400 - strlen(text)*8.6)/2;
+          }
           SDL_BlitSurface(texte, NULL, ecran, & positionText);
           positionText.y = 325;
           positionText.x = 20;
@@ -406,6 +420,7 @@ void ouvrir_caise(SDL_Surface* ecran, char* text,int amount, char* img){
   TTF_Font *title_font= NULL;
   SDL_Surface *texte = NULL;
   int continuer = 1;
+
 
     SDL_Init(SDL_INIT_VIDEO);
     menu = IMG_Load(img);
@@ -528,6 +543,7 @@ void degagerNuages(
 
 void avancer(
   char action,
+
   int carte[NB_LIGNES_CARTE][NB_COLONNES_CARTE],
   int joueurs[NB_LIGNES_JOUEURS][NB_COLONNES_JOUEURS] ){
     int ind_J_humain = 0, ans_lig_J = 0, ans_col_J = 0, existe_J = 0, nouv_lig_J = 0, nouv_col_J = 0, etat_change = 0;
@@ -569,6 +585,187 @@ void avancer(
     }
 }//PASS
 
+void lancerMenuAchatHeros(//here
+  SDL_Surface* ecran,
+  int numJoueur,
+  int joueurs[NB_LIGNES_JOUEURS][NB_COLONNES_JOUEURS],
+  int heros[NB_LIGNES_HEROS][NB_COLONNES_HEROS],
+  int herosJoueurs[NB_LIGNES_HEROSJOUEURS][NB_COLONNES_HEROSJOUEURS] ){
+    int choix=1, achat=0, confirm=0, ind_case_vide=0, ind_J_humain=0, existe_humain=0, ind_choix=0, choix_deja_achete=0, solde=0, prix=0;
+    char text[100];
+
+    SDL_Surface *menu = NULL, *uncommon = NULL, *hero = NULL;
+    SDL_Rect positionMenu;
+    SDL_Event event;
+    TTF_Font *font = NULL;
+    TTF_Font *title_font= NULL;
+    SDL_Surface *texte = NULL;
+    int continuer = 1;
+    int indiceOption = 1;
+
+        SDL_Init(SDL_INIT_VIDEO);
+        menu = IMG_Load("images/background2.png");
+        uncommon = IMG_Load("images/uncommon.png");
+        or = IMG_Load("images/gold.png");
+        positionMenu.x = 0;
+        positionMenu.y = 0;
+
+        TTF_Init();
+        title_font = TTF_OpenFont("BlackOpsOne-Regular.ttf", 35);
+        font = TTF_OpenFont("BlackOpsOne-Regular.ttf", 20);
+
+        while (continuer){
+          ind_choix = chercherIndiceAvecUneCondition(NUM_HERO_H,choix,NB_LIGNES_HEROS,NB_COLONNES_HEROS,heros);
+          choix_deja_achete = chercherIndiceAvecDeuxConditions(NUM_JOUEUR_HJ,numJoueur,NUM_HERO_HJ,choix,NB_LIGNES_HEROSJOUEURS,NB_COLONNES_HEROSJOUEURS,herosJoueurs);
+          ind_J_humain = chercherIndiceAvecUneCondition(NUM_JOUEUR_J,numJoueur,NB_LIGNES_JOUEURS,NB_COLONNES_JOUEURS,joueurs);
+          ind_case_vide = chercherIndiceAvecUneCondition(NUM_JOUEUR_HJ,-1,NB_LIGNES_HEROSJOUEURS,NB_COLONNES_HEROSJOUEURS,herosJoueurs);
+          prix = heros[ind_choix][PRIX_H];
+          solde = joueurs[ind_J_humain][OR];
+
+          SDL_WaitEvent( & event);
+          if(event.type == SDL_QUIT){
+            continuer = 0;
+          }else if(event.type == SDL_KEYDOWN){
+            if(event.key.keysym.sym == SDLK_ESCAPE){
+              continuer = 0;
+            }else if(event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER){
+              for(int i=0; i<=NB_LIGNES_JOUEURS; i++){
+                if(indiceOption == i){
+                  if(ind_choix == -1){
+                    sprintf(text, "l\'hero numero %d est non disponible !",choix);
+                    info(ecran,text, "images/alert.png");
+                  }else if(choix_deja_achete != -1){
+                    info(ecran,"Achat annule, hero deja achete !", "images/alert.png");
+                  }else if(ind_case_vide == -1){
+                    info(ecran,"Vous avez atteint le nombre d\'achat maximal", "images/alert.png");
+                  }else if(solde < prix){
+                    info(ecran,"Achat annule, solde insuffisant pour acheter cet hero !", "images/alert.png");
+                  }else if(solde >= prix){
+                    sprintf(text, "Confirmer l'achat de l\'hero %d ?",choix);
+                    confirm = alert(ecran,text);
+                    if(confirm == 1){
+                      if(ind_case_vide != -1){
+                        herosJoueurs[ind_case_vide][NUM_JOUEUR_HJ] = 0;
+                        herosJoueurs[ind_case_vide][NUM_HERO_HJ] = choix;
+                        herosJoueurs[ind_case_vide][HERO_PRINCIPAL] = 0;
+                        herosJoueurs[ind_case_vide][POINTS_EXPERIENCE] = 0;
+                        herosJoueurs[ind_case_vide][NIVEAU_HJ] = 0;
+                        herosJoueurs[ind_case_vide][POINTS_COMPETENCE_HJ] = 0;
+                        herosJoueurs[ind_case_vide][BONUS_ATTAQUE_HJ] = heros[ind_choix][BONUS_ATTAQUE_H];
+                        herosJoueurs[ind_case_vide][BONUS_DEFENSE_HJ] = heros[ind_choix][BONUS_DEFENSE_H];
+                        herosJoueurs[ind_case_vide][CHANCE_CRITIQUE_HJ] = heros[ind_choix][CHANCE_CRITIQUE_H];
+                        herosJoueurs[ind_case_vide][MORAL_HJ] = heros[ind_choix][MORAL_H];
+                        herosJoueurs[ind_case_vide][POINTS_ATTAQUE_SPECIALE_HJ] = heros[ind_choix][POINTS_ATTAQUE_SPECIALE_H];
+                        joueurs[ind_J_humain][OR] -= prix;
+                        success(ecran,"Achat effectue avec succes !",0);
+                      }
+                    }
+                  }
+                  ecran = SDL_SetVideoMode(520, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+                }
+              }
+            }else if(event.key.keysym.sym == SDLK_LEFT){
+              if(indiceOption > 1){
+                indiceOption--;
+              }
+            }else if(event.key.keysym.sym == SDLK_RIGHT){
+              indiceOption++;
+              choix = indiceOption;
+              ind_choix = chercherIndiceAvecUneCondition(NUM_HERO_H,choix,NB_LIGNES_HEROS,NB_COLONNES_HEROS,heros);
+              if(ind_choix == -1){
+                indiceOption--;
+              }
+            }
+            choix = indiceOption;
+          }
+          SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran -> format, 0, 0, 0));
+          positionMenu.y = 0;
+          positionMenu.x = 0;
+          SDL_BlitSurface(menu, NULL, ecran, & positionMenu);
+
+
+          SDL_Color blanc = {255,255,255};
+          SDL_Color green = {0, 255, 0};
+          SDL_Color dore = {255,140,0};
+          SDL_Rect positionText;
+
+          positionMenu.y = 10;
+          positionMenu.x = 8;
+          SDL_BlitSurface(uncommon, NULL, ecran, &positionMenu);
+
+          if(font != 0){
+            char text[10];
+
+            int num_hero = chercherIndiceAvecUneCondition(NUM_HERO_H,indiceOption,NB_LIGNES_HEROS,NB_COLONNES_HEROS,heros);
+
+            positionText.y = 0;
+            positionText.x = 370;
+            SDL_BlitSurface(or, NULL, ecran, & positionText);
+
+            sprintf(text, "%*d",4, joueurs[JOUEUR_HUMAIN][OR]);
+            texte = TTF_RenderText_Blended(font, text, dore);
+            positionText.y = 19;
+            positionText.x = 410;
+            SDL_BlitSurface(texte, NULL, ecran, &positionText);
+
+            sprintf(text, "Hero %d", heros[num_hero][NUM_HERO_H]);
+            texte = TTF_RenderText_0Blended(title_font, text, blanc);
+            positionText.y = 140;
+            positionText.x = 75;
+            SDL_BlitSurface(texte, NULL, ecran, & positionText);
+
+            for(int i=0; i<5; i++){
+              sprintf(text, "%d", heros[num_hero][i+1]);
+              texte = TTF_RenderText_Blended(font, text, blanc);
+              positionText.y = 123 + i*32;
+              positionText.x = 420;
+              SDL_BlitSurface(texte, NULL, ecran, & positionText);
+            }
+
+            sprintf(text, "Prix %d", heros[num_hero][PRIX_H]);
+            texte = TTF_RenderText_Blended(title_font, text, green);
+            positionText.y = 283;
+            positionText.x = 255;
+            SDL_BlitSurface(texte, NULL, ecran, & positionText);
+
+            sprintf(text, "images/heros/hero%d.png", indiceOption);
+            hero = IMG_Load(text);
+            positionText.y = 10;
+            positionText.x = 80;
+            SDL_BlitSurface(hero, NULL, ecran, & positionText);
+
+
+
+            // NUM_HERO_H, BONUS_ATTAQUE_H, BONUS_DEFENSE_H,
+            // CHANCE_CRITIQUE_H, MORAL_H, POINTS_ATTAQUE_SPECIALE_H, PRIX_H
+
+
+
+            // for (int i = 0; i < 2; i++){
+            //   if(i == indiceOption){
+            //     couleur_a_utiliser = blanc;
+            //     positionText.x = 80;
+            //     positionText.x = 75;
+            //   }
+            //
+            //   texte = TTF_RenderText_Blended(font, phrase[i], couleur_a_utiliser);
+            //   positionText.y = y_depart + i * 30;
+            //   SDL_BlitSurface(texte, NULL, ecran, & positionText);
+            // }
+
+          }
+
+
+          SDL_Flip(ecran);
+    }
+    SDL_FreeSurface(hero);
+    SDL_FreeSurface(uncommon);
+    SDL_FreeSurface(texte);
+    TTF_CloseFont(font);
+    SDL_FreeSurface(menu);
+  }//PASS
+
+
 void deroulerJeu(
   SDL_Surface* ecran,
   int carte[NB_LIGNES_CARTE][NB_COLONNES_CARTE],
@@ -579,12 +776,12 @@ void deroulerJeu(
   int unitesJoueurs[NB_LIGNES_UNITESJOUEURS][NB_COLONNES_UNITESJOUEURS] ){
     SDL_Surface *joueur = NULL, *terrain_invisible = NULL, *terrain_visible = NULL,
       *coffre_or = NULL, *coffre_or_overt = NULL, *caisse_xp = NULL, *ennemi1 = NULL,
-      *ennemi2 = NULL, *ennemi3 = NULL, *ennemi4 = NULL, *rock = NULL, *caisse_xp_overt = NULL, *materials = NULL;
+      *ennemi2 = NULL, *ennemi3 = NULL, *ennemi4 = NULL, *materials[14], *rock = NULL, *rock2 = NULL, *caisse_xp_overt = NULL, *materials_frame = NULL;
+    TTF_Font *font = NULL;
     SDL_Rect position, positionJoueur;
     SDL_Event event;
+    char text[10];
     int continuer = 1;
-
-    ecran = SDL_SetVideoMode(520, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
 
     int unite = 0, dizaine = 0, centaine = 0, milliers = 0;
     joueur = IMG_Load("images/joueur.png");
@@ -598,73 +795,53 @@ void deroulerJeu(
     ennemi2 = IMG_Load("images/ennemi2.png");
     ennemi3 = IMG_Load("images/ennemi3.png");
     ennemi4 = IMG_Load("images/ennemi4.png");
-    materials = IMG_Load("images/materials.png");
+    materials_frame = IMG_Load("images/materials.png");
     rock = IMG_Load("images/rock.jpg");
+    rock2 = IMG_Load("images/rock2.jpg");
 
+    ecran = SDL_SetVideoMode(520, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
     SDL_EnableKeyRepeat(100, 100);
     while(continuer){
-        SDL_WaitEvent(&event);
-        if(event.type == SDL_QUIT){
+      SDL_WaitEvent(&event);
+      if(event.type == SDL_QUIT){
+        continuer = 0;
+      }else if(event.type == SDL_KEYDOWN){
+        if(event.key.keysym.sym == SDLK_ESCAPE){
           continuer = 0;
-        }else if(event.type == SDL_KEYDOWN){
-          if(event.key.keysym.sym == SDLK_ESCAPE){
-            continuer = 0;
-          }else if(event.key.keysym.sym == SDLK_UP){
-            avancer('h',carte,joueurs);
-          }else if(event.key.keysym.sym == SDLK_DOWN){
-            avancer('b',carte,joueurs);
-          }else if(event.key.keysym.sym == SDLK_RIGHT){
-            avancer('d',carte,joueurs);
-            joueur = IMG_Load("images/joueur.png");
-          }else if(event.key.keysym.sym == SDLK_LEFT){
-            avancer('g',carte,joueurs);
-            joueur = IMG_Load("images/joueur_g.png");
-          }else if(event.key.keysym.sym == SDLK_RETURN){
-            executerAction(ecran,carte,joueurs,herosJoueurs,unitesJoueurs);
-            sauvegarderJeuComplet(carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
-          }
+        }else if(event.key.keysym.sym == SDLK_UP){
+          avancer('h',carte,joueurs);
+        }else if(event.key.keysym.sym == SDLK_DOWN){
+          avancer('b',carte,joueurs);
+        }else if(event.key.keysym.sym == SDLK_RIGHT){
+          avancer('d',carte,joueurs);
+          joueur = IMG_Load("images/joueur.png");
+        }else if(event.key.keysym.sym == SDLK_LEFT){
+          avancer('g',carte,joueurs);
+          joueur = IMG_Load("images/joueur_g.png");
+        }else if(event.key.keysym.sym == SDLK_RETURN){
+          ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+          executerAction(ecran,carte,joueurs,herosJoueurs,unitesJoueurs);
+          ecran = SDL_SetVideoMode(520, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+          sauvegarderJeuComplet(carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
         }
+      }
 
-        SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 89, 158, 42));
-        for (int i = 0 ; i < NB_LIGNES_CARTE + 3; i++){
-            for (int j = 0 ; j < NB_COLONNES_CARTE + 3; j++){//here
-                position.y = i * TAILLE_BLOC;
-                position.x = j * TAILLE_BLOC;
-                unite = carte[i][j]%10;
-                dizaine = (carte[i][j]/10)%10;
-                centaine = carte[i][j]/100;
-                if(i >= NB_LIGNES_CARTE || j >= NB_COLONNES_CARTE){
-                  SDL_BlitSurface(rock, NULL, ecran, &position);
-                }else{
-                  if(unite == 0){
-                    SDL_BlitSurface(terrain_visible, NULL, ecran, &position);
-                    if(dizaine == 1){
-                      if(centaine == 1){
-                        SDL_BlitSurface(ennemi1, NULL, ecran, &position);
-                      }else if(centaine == 2){
-                        SDL_BlitSurface(ennemi2, NULL, ecran, &position);
-                      }else if(centaine == 3){
-                        SDL_BlitSurface(ennemi3, NULL, ecran, &position);
-                      }else if(centaine == 4){
-                        SDL_BlitSurface(ennemi4, NULL, ecran, &position);
-                      }
-                    }else if(dizaine == 2){
-                      if(centaine != 0){
-                        SDL_BlitSurface(coffre_or, NULL, ecran, &position);
-                      }else{
-                        SDL_BlitSurface(coffre_or_overt, NULL, ecran, &position);
-                      }
-                    }else if(dizaine == 3){
-                      if(centaine != 0){
-                        SDL_BlitSurface(caisse_xp, NULL, ecran, &position);
-                      }else{
-                        SDL_BlitSurface(caisse_xp_overt, NULL, ecran, &position);
-                      }
-                    }
-                  }else if(unite == 1){
-                    SDL_BlitSurface(terrain_invisible, NULL, ecran, &position);
-                  }else if(unite == 2){
-                    SDL_BlitSurface(terrain_visible, NULL, ecran, &position);
+      SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 89, 158, 42));
+      for (int i = 0 ; i < NB_LIGNES_CARTE; i++){
+          for (int j = 0 ; j < NB_COLONNES_CARTE + 3; j++){//here
+              position.y = i * TAILLE_BLOC;
+              position.x = j * TAILLE_BLOC;
+              unite = carte[i][j]%10;
+              dizaine = (carte[i][j]/10)%10;
+              centaine = carte[i][j]/100;
+              if(i >= 8 && j >= NB_COLONNES_CARTE){
+                SDL_BlitSurface(rock2, NULL, ecran, &position);
+              }else if(j >= NB_COLONNES_CARTE){
+                SDL_BlitSurface(rock, NULL, ecran, &position);
+              }else{
+                if(unite == 0){
+                  SDL_BlitSurface(terrain_visible, NULL, ecran, &position);
+                  if(dizaine == 1){
                     if(centaine == 1){
                       SDL_BlitSurface(ennemi1, NULL, ecran, &position);
                     }else if(centaine == 2){
@@ -673,24 +850,100 @@ void deroulerJeu(
                       SDL_BlitSurface(ennemi3, NULL, ecran, &position);
                     }else if(centaine == 4){
                       SDL_BlitSurface(ennemi4, NULL, ecran, &position);
-                    }else if(dizaine == 2){
+                    }
+                  }else if(dizaine == 2){
+                    if(centaine != 0){
+                      SDL_BlitSurface(coffre_or, NULL, ecran, &position);
+                    }else{
                       SDL_BlitSurface(coffre_or_overt, NULL, ecran, &position);
-                    }else if(dizaine == 3){
+                    }
+                  }else if(dizaine == 3){
+                    if(centaine != 0){
+                      SDL_BlitSurface(caisse_xp, NULL, ecran, &position);
+                    }else{
                       SDL_BlitSurface(caisse_xp_overt, NULL, ecran, &position);
                     }
-                    SDL_BlitSurface(joueur, NULL, ecran, &position);
                   }
+                }else if(unite == 1){
+                  SDL_BlitSurface(terrain_invisible, NULL, ecran, &position);
+                }else if(unite == 2){
+                  SDL_BlitSurface(terrain_visible, NULL, ecran, &position);
+                  if(centaine == 1){
+                    SDL_BlitSurface(ennemi1, NULL, ecran, &position);
+                  }else if(centaine == 2){
+                    SDL_BlitSurface(ennemi2, NULL, ecran, &position);
+                  }else if(centaine == 3){
+                    SDL_BlitSurface(ennemi3, NULL, ecran, &position);
+                  }else if(centaine == 4){
+                    SDL_BlitSurface(ennemi4, NULL, ecran, &position);
+                  }else if(dizaine == 2){
+                    SDL_BlitSurface(coffre_or_overt, NULL, ecran, &position);
+                  }else if(dizaine == 3){
+                    SDL_BlitSurface(caisse_xp_overt, NULL, ecran, &position);
+                  }
+                  SDL_BlitSurface(joueur, NULL, ecran, &position);
                 }
-            }
+              }
+          }
+      }
+      position.y = 0;
+      position.x = NB_COLONNES_CARTE * TAILLE_BLOC;
+      SDL_BlitSurface(materials_frame, NULL, ecran, &position);
+      {
+        TTF_Init();
+        font = TTF_OpenFont("BlackOpsOne-Regular.ttf", 15.5);
+        SDL_Color blanc = {255,255,255};
+        SDL_Color gold = {255, 140, 0};
+        SDL_Color rouge = {255, 0, 0};
+        SDL_Color green = {0, 255, 0};
+        SDL_Rect positionText;
+
+        sprintf(text,"%*d",6,joueurs[JOUEUR_HUMAIN][OR]);
+        materials[13] = TTF_RenderText_Blended(font, text, gold);
+        position.y = 21.5;
+        position.x = NB_COLONNES_CARTE * TAILLE_BLOC + 45;
+        SDL_BlitSurface(materials[13], NULL, ecran, &position);
+
+        for(int i=0; i<8; i++){
+          sprintf(text,"%*d",6,joueurs[JOUEUR_HUMAIN][i+4]);
+          materials[i] = TTF_RenderText_Blended(font, text, blanc);
+          position.y = 64.5 + i*31.5;
+          position.x = NB_COLONNES_CARTE * TAILLE_BLOC + 45;
+          SDL_BlitSurface(materials[i], NULL, ecran, &position);
         }
-        position.y = 0;
-        position.x = NB_COLONNES_CARTE * TAILLE_BLOC;
-        SDL_BlitSurface(materials, NULL, ecran, &position);
-        //here
-        SDL_Flip(ecran);
+
+        font = TTF_OpenFont("BlackOpsOne-Regular.ttf", 13.5);
+
+        sprintf(text, "U.Tuees: %*d",10,joueurs[JOUEUR_HUMAIN][NB_UNITES_TUEES]);
+        materials[12] = TTF_RenderText_Blended(font, text, green);
+        position.y = 325;
+        position.x = NB_COLONNES_CARTE * TAILLE_BLOC + 10;
+        SDL_BlitSurface(materials[12], NULL, ecran, &position);
+
+
+        sprintf(text, "B.Gagnes: %*d",7,joueurs[JOUEUR_HUMAIN][NB_BATAILLE_GAGNES]);
+        materials[12] = TTF_RenderText_Blended(font, text, green);
+        position.y = 343;
+        position.x = NB_COLONNES_CARTE * TAILLE_BLOC + 10;
+        SDL_BlitSurface(materials[12], NULL, ecran, &position);
+
+        sprintf(text, "U.Perdues: %*d",4,joueurs[JOUEUR_HUMAIN][NB_UNITES_PERDUES]);
+        materials[12] = TTF_RenderText_Blended(font, text, rouge);
+        position.y = 361;
+        position.x = NB_COLONNES_CARTE * TAILLE_BLOC + 10;
+        SDL_BlitSurface(materials[12], NULL, ecran, &position);
+
+        sprintf(text, "B.Perdues: %*d",4,joueurs[JOUEUR_HUMAIN][NB_BATAILLE_PERDUES]);
+        materials[12] = TTF_RenderText_Blended(font, text, rouge);
+        position.y = 379;
+        position.x = NB_COLONNES_CARTE * TAILLE_BLOC + 10;
+        SDL_BlitSurface(materials[12], NULL, ecran, &position);
+      }
+      SDL_Flip(ecran);
     }
+
     SDL_EnableKeyRepeat(0, 0);
-    SDL_FreeSurface(materials);
+    SDL_FreeSurface(materials_frame);
     SDL_FreeSurface(joueur);
     SDL_FreeSurface(caisse_xp_overt);
     SDL_FreeSurface(coffre_or_overt);
@@ -698,6 +951,7 @@ void deroulerJeu(
     SDL_FreeSurface(terrain_invisible);
     SDL_FreeSurface(coffre_or);
     SDL_FreeSurface(caisse_xp);
+    SDL_FreeSurface(rock);
     SDL_FreeSurface(ennemi1);
     SDL_FreeSurface(ennemi2);
     SDL_FreeSurface(ennemi3);
@@ -809,7 +1063,6 @@ void lancerMenuMagasin(
     int indiceOption = 0;
 
       SDL_Init(SDL_INIT_VIDEO);
-
       menu = IMG_Load("images/background.jpg");
       positionMenu.x = 0;
       positionMenu.y = 0;
@@ -817,8 +1070,6 @@ void lancerMenuMagasin(
       TTF_Init();
       title_font = TTF_OpenFont("BlackOpsOne-Regular.ttf", 35);
       font = TTF_OpenFont("PressStart2P-Regular.ttf", 15);
-
-
       SDL_Color blanc = {255,255,255};
       SDL_Color bleu = {130, 236, 251};
       SDL_Rect positionText;
@@ -832,17 +1083,23 @@ void lancerMenuMagasin(
             continuer = 0;
           }else if(event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER){
             if(indiceOption == 0){
-                continuer = 0;
+              ecran = SDL_SetVideoMode(520, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+              lancerMenuAchatHeros(ecran,JOUEUR_HUMAIN,joueurs,heros,herosJoueurs);
+              ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
             }else if(indiceOption == 1){
-
+              lancerMenuAchatHeros(ecran,JOUEUR_HUMAIN,joueurs,heros,herosJoueurs);//here
+            }else if(indiceOption == 2){
+              lancerMenuAchatHeros(ecran,JOUEUR_HUMAIN,joueurs,heros,herosJoueurs);
+            }else if(indiceOption == 3){
+              ///lancerMenuAchatUnites(ecran,JOUEUR_HUMAIN,joueurs,heros,herosJoueurs);
             }
           }else if(event.key.keysym.sym == SDLK_UP){
             if(indiceOption > 0){
               indiceOption--;
             }
           }else if(event.key.keysym.sym == SDLK_DOWN){
-            if(indiceOption < 1){
-                indiceOption++;
+            if(indiceOption < 3){
+              indiceOption++;
             }
           }
         }
@@ -850,16 +1107,18 @@ void lancerMenuMagasin(
         SDL_BlitSurface(menu, NULL, ecran, & positionMenu);
 
         if(font != 0){
-          char * phrase[2];
+          char * phrase[4];
             texte = TTF_RenderText_Blended(title_font, "Magasin", bleu);
             positionText.y = 100;
             positionText.x = 125;
             SDL_BlitSurface(texte, NULL, ecran, & positionText);
             phrase[0] = "Acheter des Heros";
-            phrase[1] = "Acheter des Unites";
-          int y_depart = 210;
+            phrase[1] = "Voir les Heros";
+            phrase[2] = "Acheter des Unites";
+            phrase[3] = "Voir les Unites";
+          int y_depart = 180;
           SDL_Color couleur_a_utiliser;
-          for (int i = 0; i < 2; i++){
+          for (int i = 0; i < 4; i++){
             if(i == indiceOption){
               couleur_a_utiliser = bleu;
               positionText.x = 80;
@@ -923,7 +1182,7 @@ int main(int argc, char * argv[]){
       SDL_Flip(ecran);
       SDL_Delay(1000);
       while(continuer){
-        ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
+
         SDL_WaitEvent( & event);
         if(event.type == SDL_QUIT){
           continuer = 0;
@@ -947,10 +1206,12 @@ int main(int argc, char * argv[]){
               sauvegarderJeuComplet(carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
             }else if(indiceOption == 2 && screen == 1){
               deroulerJeu(ecran,carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
+              ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
               sauvegarderJeuComplet(carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
             }else if(indiceOption == 3 && screen == 1){
               initialiserNouveauJeu(carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
               deroulerJeu(ecran,carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
+              ecran = SDL_SetVideoMode(400, 400, 32, SDL_HWSURFACE | SDL_DOUBLEBUF);
               sauvegarderJeuComplet(carte,joueurs,heros,herosJoueurs,unites,unitesJoueurs);
             }else if(indiceOption == 4 && screen == 1){
               if(alert(ecran,"Vouz Voulez Quitter ?")){
